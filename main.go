@@ -24,7 +24,7 @@ const (
 func iniciar() *s3.S3 {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(REGION),
-		Credentials: credentials.NewStaticCredentials("AKIAR6BYM7NK7XFR2VMF", "ClneU5rUg+c0R5/3jyNlVpkzttNpb79JIfjazhy1", ""),
+		Credentials: credentials.NewStaticCredentials("", "", ""),
 	})
 	if err != nil {
 		panic(err)
