@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -11,10 +14,11 @@ import (
 )
 
 const (
-	FILENAME    = "teste.txt"
-	BUCKET_NAME = "teste-golang-se"
-	KEY_NAME    = "teste.txt"
-	REGION      = "sa-east-1"
+	FILENAME       = "teste.txt"
+	BUCKET_NAME    = "teste-golang-se"
+	KEY_NAME       = "teste.txt"
+	REGION         = "sa-east-1"
+	LOCAL_FILENAME = "testeDownload.txt"
 )
 
 func iniciar() *s3.S3 {
@@ -63,4 +67,31 @@ func main() {
 
 	s3session := iniciar()
 	UploadFile(s3session)
+
+	req, _ := s3session.GetObjectRequest(&s3.GetObjectInput{
+		Bucket: aws.String(BUCKET_NAME),
+		Key:    aws.String(KEY_NAME),
+	})
+	urlStr, err := req.Presign(15 * time.Minute) // 15 minutos de validade da URL
+	if err != nil {
+		panic(err)
+	}
+
+	resp, err := http.Get(urlStr)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	file, err := os.Create(LOCAL_FILENAME)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	_, err = io.Copy(file, resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
 }
