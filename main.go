@@ -63,11 +63,7 @@ func UploadFile(s3session *s3.S3) {
 
 }
 
-func main() {
-
-	s3session := iniciar()
-	UploadFile(s3session)
-
+func DownloadFile(s3session *s3.S3) {
 	req, _ := s3session.GetObjectRequest(&s3.GetObjectInput{
 		Bucket: aws.String(BUCKET_NAME),
 		Key:    aws.String(KEY_NAME),
@@ -93,5 +89,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
 
+func main() {
+
+	s3session := iniciar()
+	UploadFile(s3session)
+	DownloadFile(s3session)
 }
