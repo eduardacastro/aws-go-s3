@@ -17,15 +17,10 @@ const (
 	REGION      = "sa-east-1"
 )
 
-type Session struct {
-	S3Session *session.Session
-}
-
-func main() {
-
+func iniciar() *s3.S3 {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(REGION),
-		Credentials: credentials.NewStaticCredentials("", "", ""),
+		Credentials: credentials.NewStaticCredentials("AKIAR6BYM7NK7XFR2VMF", "ClneU5rUg+c0R5/3jyNlVpkzttNpb79JIfjazhy1", ""),
 	})
 	if err != nil {
 		panic(err)
@@ -33,12 +28,17 @@ func main() {
 
 	s3session := s3.New(sess)
 
+	return s3session
+}
+
+func UploadFile(s3session *s3.S3) {
 	file, err := os.Open(FILENAME)
 	if err != nil {
 		panic(err)
 	}
 	defer file.Close()
 
+	fmt.Println("Uploading file")
 	_, err = s3session.PutObject(&s3.PutObjectInput{
 		Bucket: aws.String(BUCKET_NAME),
 		Key:    aws.String(KEY_NAME),
@@ -47,12 +47,20 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	resp, err := s3session.HeadObject(&s3.HeadObjectInput{
-		Bucket: aws.String(BUCKET_NAME),
-		Key:    aws.String(KEY_NAME),
-	})
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("Uploaded file", *resp.ContentLength, "bytes")
+
+	// resp, err := s3session.HeadObject(&s3.HeadObjectInput{
+	// 	Bucket: aws.String(BUCKET_NAME),
+	// 	Key:    aws.String(KEY_NAME),
+	// })
+	// if err != nil {
+	// 	panic(err)
+	// }
+	fmt.Println("Uploaded file")
+
+}
+
+func main() {
+
+	s3session := iniciar()
+	UploadFile(s3session)
 }
