@@ -2,10 +2,8 @@ package main
 
 import (
 	"fmt"
-	"io"
-	"net/http"
+	"io/ioutil"
 	"os"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -63,37 +61,32 @@ func UploadFile(s3session *s3.S3) {
 
 }
 
-func DownloadFile(s3session *s3.S3) {
-	req, _ := s3session.GetObjectRequest(&s3.GetObjectInput{
+func DownloadFile(filename string, s3session *s3.S3) {
+	fmt.Println("Downloading file")
+	resp, err := s3session.GetObject(&s3.GetObjectInput{
 		Bucket: aws.String(BUCKET_NAME),
 		Key:    aws.String(KEY_NAME),
 	})
-	urlStr, err := req.Presign(15 * time.Minute) // 15 minutos de validade da URL
-	if err != nil {
-		panic(err)
-	}
-
-	resp, err := http.Get(urlStr)
 	if err != nil {
 		panic(err)
 	}
 	defer resp.Body.Close()
 
-	file, err := os.Create(LOCAL_FILENAME)
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		panic(err)
 	}
-	defer file.Close()
 
-	_, err = io.Copy(file, resp.Body)
-	if err != nil {
+	if err := ioutil.WriteFile(LOCAL_FILENAME, body, 0644); err != nil {
 		panic(err)
 	}
+
+	fmt.Println("Downloaded file")
 }
 
 func main() {
 
 	s3session := iniciar()
 	UploadFile(s3session)
-	DownloadFile(s3session)
+	DownloadFile("teste.txt", s3session)
 }
